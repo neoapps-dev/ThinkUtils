@@ -6,6 +6,29 @@ A modern desktop application for ThinkPad users on Linux, built with Tauri (Rust
 ![License](https://img.shields.io/badge/license-LGPL%20v3-green)
 ![Tauri](https://img.shields.io/badge/Built%20with-Tauri-orange)
 
+## Screenshots
+
+### Home Dashboard
+![Home Dashboard](./screenshots/home.png)
+
+### Extended Home View
+![Extended Home](./screenshots/home_extended.png)
+
+### Fan Control
+![Fan Control](./screenshots/fan_control.png)
+
+### Performance Tuning
+![Performance](./screenshots/performance.png)
+
+### System Monitor
+![System Monitor](./screenshots/system_monitor.png)
+
+### System Information
+![System Info](./screenshots/system_info.png)
+
+### Settings Sync
+![Settings Sync](./screenshots/settings_sync.png)
+
 ## Features
 
 ### 🏠 Home Dashboard
