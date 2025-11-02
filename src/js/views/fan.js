@@ -3,6 +3,7 @@ const { invoke } = window.__TAURI__.core;
 import { elements } from '../dom.js';
 import { setState, getState } from '../state.js';
 import { showStatus } from '../utils.js';
+import { initFanCurve, startCurveMode, stopCurveMode } from '../fanCurve.js';
 
 export function setupFanControl() {
   elements.slider.addEventListener('input', (e) => {
@@ -15,11 +16,15 @@ export function setupFanControl() {
 
   elements.btnAuto.addEventListener('click', () => setFanMode('auto'));
   elements.btnManual.addEventListener('click', () => setFanMode('manual', elements.slider.value));
+  elements.btnCurve.addEventListener('click', () => setFanMode('curve'));
   elements.btnFull.addEventListener('click', () => setFanMode('full'));
 
   elements.btnGrantPermissions.addEventListener('click', async () => {
     await tryUpdatePermissions();
   });
+
+  // Initialize fan curve editor
+  initFanCurve();
 }
 
 export async function checkInitialPermissions() {
@@ -111,9 +116,16 @@ function updateFanDisplay(fans) {
 }
 
 function updateUIFromFanLevel(level) {
+  const currentMode = getState('currentFanMode');
+
+  // Don't override curve mode when it's setting speeds automatically
+  if (currentMode === 'curve') {
+    return;
+  }
+
   const levelStr = level.toString().toLowerCase();
 
-  [elements.btnAuto, elements.btnManual, elements.btnFull].forEach((btn) => {
+  [elements.btnAuto, elements.btnManual, elements.btnCurve, elements.btnFull].forEach((btn) => {
     btn.classList.remove('active');
   });
 
@@ -122,11 +134,13 @@ function updateUIFromFanLevel(level) {
     elements.btnAuto.classList.add('active');
     elements.currentMode.textContent = 'AUTO';
     elements.sliderSection.style.display = 'none';
+    elements.curveSection.style.display = 'none';
   } else if (levelStr === 'full-speed' || levelStr === 'disengaged') {
     setState('currentFanMode', 'full');
     elements.btnFull.classList.add('active');
     elements.currentMode.textContent = 'MAX';
     elements.sliderSection.style.display = 'none';
+    elements.curveSection.style.display = 'none';
   } else if (!isNaN(parseInt(levelStr))) {
     setState('currentFanMode', 'manual');
     const numLevel = parseInt(levelStr);
@@ -135,6 +149,7 @@ function updateUIFromFanLevel(level) {
     elements.btnManual.classList.add('active');
     elements.currentMode.textContent = `LEVEL ${numLevel}`;
     elements.sliderSection.style.display = 'block';
+    elements.curveSection.style.display = 'none';
   }
 }
 
@@ -146,7 +161,7 @@ async function setFanMode(mode, level = null) {
 
   setState('currentFanMode', mode);
 
-  [elements.btnAuto, elements.btnManual, elements.btnFull].forEach((btn) => {
+  [elements.btnAuto, elements.btnManual, elements.btnCurve, elements.btnFull].forEach((btn) => {
     btn.classList.remove('active');
   });
 
@@ -154,29 +169,75 @@ async function setFanMode(mode, level = null) {
   let statusText;
 
   switch (mode) {
-    case 'auto':
+    case 'auto': {
+      stopCurveMode();
       elements.btnAuto.classList.add('active');
       elements.currentMode.textContent = 'AUTO';
       elements.sliderSection.style.display = 'none';
+      elements.curveSection.style.display = 'none';
       speedValue = 'auto';
       statusText = 'Fan mode: Auto';
-      break;
 
-    case 'manual':
+      // Save to settings
+      const { updateSetting } = await import('../settingsManager.js');
+      await updateSetting('fan_mode', 'auto');
+      await updateSetting('fan_curve_enabled', false);
+      break;
+    }
+
+    case 'manual': {
+      stopCurveMode();
       elements.btnManual.classList.add('active');
       speedValue = level || elements.slider.value;
       elements.currentMode.textContent = `LEVEL ${speedValue}`;
       elements.sliderSection.style.display = 'block';
+      elements.curveSection.style.display = 'none';
       statusText = `Fan level: ${speedValue}`;
-      break;
 
-    case 'full':
+      // Save to settings
+      const { updateSetting: updateSettingManual } = await import('../settingsManager.js');
+      await updateSettingManual('fan_mode', 'manual');
+      await updateSettingManual('fan_level', parseInt(speedValue));
+      await updateSettingManual('fan_curve_enabled', false);
+      break;
+    }
+
+    case 'curve': {
+      elements.btnCurve.classList.add('active');
+      elements.currentMode.textContent = 'CURVE';
+      elements.sliderSection.style.display = 'none';
+      elements.curveSection.style.display = 'block';
+
+      // Initialize canvas when curve section becomes visible
+      setTimeout(() => {
+        initFanCurve();
+        startCurveMode();
+      }, 100);
+
+      // Save to settings
+      const { updateSetting: updateSettingCurve } = await import('../settingsManager.js');
+      await updateSettingCurve('fan_mode', 'curve');
+      await updateSettingCurve('fan_curve_enabled', true);
+
+      showStatus('Fan curve mode active', 'success');
+      return; // Don't set fan speed directly, curve mode handles it
+    }
+
+    case 'full': {
+      stopCurveMode();
       elements.btnFull.classList.add('active');
       elements.currentMode.textContent = 'MAX';
       elements.sliderSection.style.display = 'none';
+      elements.curveSection.style.display = 'none';
       speedValue = 'full-speed';
       statusText = 'Fan mode: Maximum';
+
+      // Save to settings
+      const { updateSetting: updateSettingFull } = await import('../settingsManager.js');
+      await updateSettingFull('fan_mode', 'full');
+      await updateSettingFull('fan_curve_enabled', false);
       break;
+    }
   }
 
   if (getState('lastFanSpeedSet') === speedValue) {
@@ -211,6 +272,8 @@ async function setFanMode(mode, level = null) {
     setState('fanControlInProgress', false);
   }
 }
+
+export { setFanMode };
 
 async function tryUpdatePermissions() {
   try {

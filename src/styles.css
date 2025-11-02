@@ -344,6 +344,7 @@ body {
 #fan-view {
   padding: 0;
   overflow: hidden;
+  height: 100%;
 }
 
 /* Home View - Modern Layout */
@@ -862,24 +863,26 @@ body {
 /* Fan Control View */
 .fan-control-layout {
   display: flex;
+  flex-direction: row;
   height: 100%;
   width: 100%;
+  overflow: hidden;
 }
 
 /* Left: Status Sidebar */
 .fan-status-section {
-  width: 320px;
+  flex: 0 0 20%;
+  min-width: 280px;
+  max-width: 400px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  flex-shrink: 0;
 }
 
 .fan-status-card {
   padding: 24px;
-  height: 100%;
 }
 
 .fan-status-header {
@@ -1016,39 +1019,42 @@ body {
 }
 
 .fan-mode-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .fan-mode-option {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px;
+  gap: 10px;
+  padding: 10px 12px;
   background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: left;
+  min-height: 56px;
 }
 
 .fan-mode-option:hover {
   background: var(--bg-elevated);
   border-color: var(--text-tertiary);
+  transform: translateY(-1px);
 }
 
 .fan-mode-option.active {
   background: var(--red-light);
   border-color: var(--red-primary);
+  box-shadow: 0 0 0 1px var(--red-primary);
 }
 
 .mode-option-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1058,6 +1064,8 @@ body {
 }
 
 .mode-option-icon svg {
+  width: 16px;
+  height: 16px;
   stroke: var(--text-secondary);
   transition: all 0.2s ease;
 }
@@ -1071,41 +1079,29 @@ body {
 }
 
 .mode-option-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   flex: 1;
 }
 
 .mode-option-content h4 {
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin: 0;
+  line-height: 1.2;
 }
 
 .mode-option-content p {
-  font-size: 12px;
+  font-size: 10px;
   color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.2;
 }
 
 .mode-option-check {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--border-color);
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-.mode-option-check svg {
-  stroke: transparent;
-  transition: all 0.2s ease;
-}
-
-.fan-mode-option.active .mode-option-check {
-  background: var(--red-primary);
-  border-color: var(--red-primary);
+  display: none;
 }
 
 .fan-mode-option.active .mode-option-check svg {
@@ -1287,8 +1283,16 @@ body {
 }
 
 @media (width <= 1200px) {
-  .fan-control-layout {
-    grid-template-columns: 1fr;
+  .fan-status-section {
+    flex: 0 0 25%;
+    min-width: 250px;
+  }
+}
+
+@media (width <= 900px) {
+  .fan-status-section {
+    flex: 0 0 30%;
+    min-width: 220px;
   }
 }
 
@@ -2979,4 +2983,144 @@ input:focus-visible {
   background: var(--bg-tertiary);
   color: var(--text-primary);
   border-color: var(--text-tertiary);
+}
+
+/* Fan Curve Editor */
+.fan-curve-section {
+  margin-top: 24px;
+  padding: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+
+.fan-curve-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.fan-curve-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fan-curve-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-curve-action {
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-curve-action:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--text-tertiary);
+}
+
+.btn-primary-small {
+  background: var(--red-primary);
+  color: white;
+  border-color: var(--red-primary);
+}
+
+.btn-primary-small:hover {
+  background: var(--red-hover);
+  border-color: var(--red-hover);
+  box-shadow: 0 2px 8px var(--red-glow);
+}
+
+.fan-curve-canvas-wrapper {
+  background: #1e1e1e;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+#fan-curve-canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.fan-curve-info {
+  display: flex;
+  gap: 24px;
+  padding: 12px 16px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.curve-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.curve-info-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.curve-info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.fan-curve-help {
+  padding: 12px;
+  background: var(--bg-secondary);
+  border-left: 3px solid var(--red-primary);
+  border-radius: 4px;
+}
+
+.fan-curve-help p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Fan Control View - No scrolling on container */
+
+/* Scrollbar styling for fan control sections */
+.fan-status-section::-webkit-scrollbar,
+.fan-control-section::-webkit-scrollbar {
+  width: 8px;
+}
+
+.fan-status-section::-webkit-scrollbar-track,
+.fan-control-section::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fan-status-section::-webkit-scrollbar-thumb,
+.fan-control-section::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: 4px;
+}
+
+.fan-status-section::-webkit-scrollbar-thumb:hover,
+.fan-control-section::-webkit-scrollbar-thumb:hover {
+  background: var(--border-color);
 }

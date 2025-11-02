@@ -1,4 +1,5 @@
 mod fan_control;
+mod fan_curve;
 mod sync;
 mod system_info;
 mod battery;
@@ -6,6 +7,7 @@ mod performance;
 mod monitor;
 mod auth;
 mod permissions;
+mod settings;
 
 use tauri::{
     menu::{Menu, MenuItem},
@@ -45,8 +47,9 @@ async fn toggle_maximize(app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 async fn close_window(app: AppHandle) -> Result<(), String> {
+    // Hide window instead of closing to keep app running in background
     if let Some(window) = app.get_webview_window("main") {
-        window.close().map_err(|e| format!("Failed to close: {}", e))
+        window.hide().map_err(|e| format!("Failed to hide: {}", e))
     } else {
         Err("Window not found".to_string())
     }
@@ -67,6 +70,16 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
+            // Load fan curve config from persistent storage
+            let saved_config = fan_curve::load_config_from_store(&app.handle());
+            let fan_curve_state = fan_curve::FanCurveState::new(std::sync::Mutex::new(saved_config));
+            app.manage(fan_curve_state);
+
+            // Start fan curve background task
+            let app_handle = app.handle().clone();
+            tauri::async_runtime::spawn(async move {
+                fan_curve::fan_curve_background_task(app_handle).await;
+            });
             // Create tray menu
             let show = MenuItem::with_id(app, "show", "Show Window", true, None::<&str>)?;
             let hide = MenuItem::with_id(app, "hide", "Hide Window", true, None::<&str>)?;
@@ -117,6 +130,19 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            // Prevent window from closing, hide it instead
+            if let Some(window) = app.get_webview_window("main") {
+                let window_clone = window.clone();
+                window.on_window_event(move |event| {
+                    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                        // Prevent the window from closing
+                        api.prevent_close();
+                        // Hide the window instead
+                        let _ = window_clone.hide();
+                    }
+                });
+            }
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -131,11 +157,19 @@ pub fn run() {
             // Permissions
             permissions::check_permissions_status,
             permissions::setup_permissions,
+            // Settings
+            settings::save_app_settings,
+            settings::load_app_settings,
+            settings::update_setting,
             // Fan Control
             fan_control::get_sensor_data,
             fan_control::set_fan_speed,
             fan_control::check_permissions,
             fan_control::update_permissions,
+            // Fan Curve
+            fan_curve::set_fan_curve,
+            fan_curve::get_fan_curve,
+            fan_curve::enable_fan_curve,
             // Sync
             sync::get_settings,
             sync::save_settings,

@@ -14,10 +14,12 @@ export function initializeElements() {
   elements.sliderSection = document.getElementById('slider-section');
   elements.btnAuto = document.getElementById('btn-auto');
   elements.btnManual = document.getElementById('btn-manual');
+  elements.btnCurve = document.getElementById('btn-curve');
   elements.btnFull = document.getElementById('btn-full');
   elements.currentMode = document.getElementById('current-mode');
   elements.statusMessage = document.getElementById('status-message');
   elements.fanStatusBanner = document.querySelector('.fan-status-banner');
+  elements.curveSection = document.getElementById('curve-section');
   elements.aboutLink = document.getElementById('about-link');
   elements.aboutDialog = document.getElementById('about-dialog');
   elements.closeAbout = document.getElementById('close-about');

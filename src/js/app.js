@@ -10,6 +10,7 @@ import { setupSyncHandlers } from './views/sync.js';
 import { setupBatteryHandlers } from './views/battery.js';
 import { setupAboutDialog } from './about.js';
 import { state } from './state.js';
+import { initializeSettings } from './settingsManager.js';
 
 // Check if we're using modular HTML (template loading)
 const isModularHTML = document.getElementById('titlebar-container') !== null;
@@ -109,6 +110,10 @@ async function initializeApp() {
 
   // Check permissions at startup
   await checkAndSetupPermissions();
+
+  // Load and apply all settings
+  console.log('[ThinkUtils] Loading settings...');
+  await initializeSettings();
 
   // Update home view periodically
   setInterval(() => {

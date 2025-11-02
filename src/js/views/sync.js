@@ -114,9 +114,14 @@ async function handleGoogleLogout() {
 async function handleSyncNow() {
   try {
     showStatus('Syncing settings...', 'info');
+
+    // Import fan curve functions
+    const { getCurvePoints } = await import('../fanCurve.js');
+
     const settings = {
       fan_mode: getState('currentFanMode'),
       fan_level: parseInt(elements.slider.value),
+      fan_curve: getCurvePoints(),
       auto_start: false,
       minimize_to_tray: true,
       theme: 'system',
@@ -145,6 +150,13 @@ async function handleDownloadSettings() {
 
     if (response.success && response.data) {
       const settings = response.data;
+
+      // Restore fan curve if available
+      if (settings.fan_curve) {
+        const { setCurvePoints } = await import('../fanCurve.js');
+        setCurvePoints(settings.fan_curve);
+        localStorage.setItem('fanCurve', JSON.stringify(settings.fan_curve));
+      }
 
       if (settings.fan_mode) {
         const { setFanMode } = await import('./fan.js');
