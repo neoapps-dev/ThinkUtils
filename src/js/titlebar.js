@@ -9,6 +9,9 @@ export function setupTitlebar() {
   const maximizeBtn = document.getElementById('maximize-btn');
   const closeBtn = document.getElementById('close-btn');
 
+  // Load and display machine model in titlebar
+  loadMachineModel();
+
   if (!minimizeBtn || !maximizeBtn || !closeBtn) {
     console.error('[Titlebar] Buttons not found');
     return;
@@ -61,4 +64,18 @@ export function setupTitlebar() {
       console.error('[Titlebar] Close failed:', e);
     }
   });
+}
+
+async function loadMachineModel() {
+  try {
+    const response = await invoke('get_system_info');
+    if (response.success && response.data) {
+      const titleElement = document.querySelector('.titlebar-title');
+      if (titleElement) {
+        titleElement.textContent = `ThinkUtils - ${response.data.model}`;
+      }
+    }
+  } catch (e) {
+    console.error('[Titlebar] Failed to load machine model:', e);
+  }
 }

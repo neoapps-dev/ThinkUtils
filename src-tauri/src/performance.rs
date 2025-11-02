@@ -27,26 +27,26 @@ pub struct ApiResponse<T> {
 #[tauri::command]
 pub fn get_cpu_info() -> ApiResponse<CpuInfo> {
     let cpu0_path = "/sys/devices/system/cpu/cpu0/cpufreq";
-    
+
     let read_file = |file: &str| -> String {
         fs::read_to_string(format!("{}/{}", cpu0_path, file))
             .unwrap_or_default()
             .trim()
             .to_string()
     };
-    
+
     let read_freq = |file: &str| -> u32 {
         read_file(file)
             .parse::<u32>()
             .unwrap_or(0) / 1000 // Convert kHz to MHz
     };
-    
+
     let governor = read_file("scaling_governor");
     let available_governors = read_file("scaling_available_governors")
         .split_whitespace()
         .map(String::from)
         .collect();
-    
+
     ApiResponse {
         success: true,
         data: Some(CpuInfo {
@@ -63,7 +63,7 @@ pub fn get_cpu_info() -> ApiResponse<CpuInfo> {
 #[tauri::command]
 pub async fn set_cpu_governor(governor: String) -> ApiResponse<String> {
     println!("[Performance] Setting CPU governor to: {}", governor);
-    
+
     // Get number of CPUs
     let cpu_count = fs::read_dir("/sys/devices/system/cpu")
         .ok()
@@ -79,13 +79,13 @@ pub async fn set_cpu_governor(governor: String) -> ApiResponse<String> {
                 .count()
         })
         .unwrap_or(1);
-    
+
     println!("[Performance] Found {} CPU cores", cpu_count);
-    
+
     // Create script to set governor for all CPUs
     let temp_script = format!("/tmp/set_governor_{}.sh", std::process::id());
     let mut script_content = String::from("#!/bin/bash\nset -e\n");
-    
+
     for i in 0..cpu_count {
         script_content.push_str(&format!(
             "echo {} > /sys/devices/system/cpu/cpu{}/cpufreq/scaling_governor\n",
@@ -93,9 +93,9 @@ pub async fn set_cpu_governor(governor: String) -> ApiResponse<String> {
         ));
     }
     script_content.push_str("exit 0\n");
-    
+
     println!("[Performance] Script content:\n{}", script_content);
-    
+
     if let Err(e) = fs::write(&temp_script, &script_content) {
         return ApiResponse {
             success: false,
@@ -103,16 +103,16 @@ pub async fn set_cpu_governor(governor: String) -> ApiResponse<String> {
             error: Some(format!("Failed to create script: {}", e)),
         };
     }
-    
+
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
         let perms = std::fs::Permissions::from_mode(0o755);
         let _ = fs::set_permissions(&temp_script, perms);
     }
-    
+
     println!("[Performance] Executing pkexec...");
-    
+
     match tokio::process::Command::new("pkexec")
         .arg("bash")
         .arg(&temp_script)
@@ -121,14 +121,14 @@ pub async fn set_cpu_governor(governor: String) -> ApiResponse<String> {
     {
         Ok(output) => {
             let _ = fs::remove_file(&temp_script);
-            
+
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
-            
+
             println!("[Performance] pkexec stdout: {}", stdout);
             println!("[Performance] pkexec stderr: {}", stderr);
             println!("[Performance] pkexec status: {}", output.status);
-            
+
             if output.status.success() {
                 println!("[Performance] Successfully set governor to: {}", governor);
                 ApiResponse {
@@ -168,14 +168,14 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
     match Command::new("powerprofilesctl").arg("get").output() {
         Ok(output) if output.status.success() => {
             let current = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            
+
             // Get available profiles
             let available = match Command::new("powerprofilesctl").arg("list").output() {
                 Ok(list_output) if list_output.status.success() => {
                     String::from_utf8_lossy(&list_output.stdout)
                         .lines()
-                        .filter(|line| line.contains("*") || line.trim().starts_with("power-saver") 
-                                    || line.trim().starts_with("balanced") 
+                        .filter(|line| line.contains("*") || line.trim().starts_with("power-saver")
+                                    || line.trim().starts_with("balanced")
                                     || line.trim().starts_with("performance"))
                         .map(|line| {
                             line.trim()
@@ -191,7 +191,7 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
                 }
                 _ => vec!["power-saver".to_string(), "balanced".to_string(), "performance".to_string()],
             };
-            
+
             return ApiResponse {
                 success: true,
                 data: Some(PowerProfile { current, available }),
@@ -200,7 +200,7 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
         }
         _ => {}
     }
-    
+
     // Fallback to TLP if available
     match Command::new("tlp-stat").arg("-s").output() {
         Ok(output) if output.status.success() => {
@@ -210,7 +210,7 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
             } else {
                 "power-saver".to_string()
             };
-            
+
             return ApiResponse {
                 success: true,
                 data: Some(PowerProfile {
@@ -222,7 +222,7 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
         }
         _ => {}
     }
-    
+
     ApiResponse {
         success: false,
         data: None,
@@ -233,7 +233,7 @@ pub fn get_power_profile() -> ApiResponse<PowerProfile> {
 #[tauri::command]
 pub async fn set_power_profile(profile: String) -> ApiResponse<String> {
     println!("[Performance] Setting power profile to: {}", profile);
-    
+
     // Try power-profiles-daemon
     match tokio::process::Command::new("powerprofilesctl")
         .arg("set")
@@ -250,14 +250,14 @@ pub async fn set_power_profile(profile: String) -> ApiResponse<String> {
         }
         _ => {}
     }
-    
+
     // Fallback to TLP
     let tlp_mode = match profile.as_str() {
         "power-saver" => "BAT",
         "performance" => "AC",
         _ => "BAT",
     };
-    
+
     match tokio::process::Command::new("sudo")
         .arg("tlp")
         .arg(tlp_mode)
@@ -285,7 +285,7 @@ pub async fn set_power_profile(profile: String) -> ApiResponse<String> {
 pub fn get_turbo_boost_status() -> ApiResponse<bool> {
     let intel_pstate = "/sys/devices/system/cpu/intel_pstate/no_turbo";
     let cpufreq_boost = "/sys/devices/system/cpu/cpufreq/boost";
-    
+
     // Check Intel P-state
     if let Ok(content) = fs::read_to_string(intel_pstate) {
         let no_turbo = content.trim() == "1";
@@ -295,7 +295,7 @@ pub fn get_turbo_boost_status() -> ApiResponse<bool> {
             error: None,
         };
     }
-    
+
     // Check cpufreq boost
     if let Ok(content) = fs::read_to_string(cpufreq_boost) {
         let boost = content.trim() == "1";
@@ -305,7 +305,7 @@ pub fn get_turbo_boost_status() -> ApiResponse<bool> {
             error: None,
         };
     }
-    
+
     ApiResponse {
         success: false,
         data: None,
@@ -317,15 +317,15 @@ pub fn get_turbo_boost_status() -> ApiResponse<bool> {
 pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
     let intel_pstate = "/sys/devices/system/cpu/intel_pstate/no_turbo";
     let cpufreq_boost = "/sys/devices/system/cpu/cpufreq/boost";
-    
+
     let value = if enabled { "0" } else { "1" }; // Inverted for no_turbo
     let boost_value = if enabled { "1" } else { "0" };
-    
+
     // Try Intel P-state first
     if std::path::Path::new(intel_pstate).exists() {
         let temp_script = format!("/tmp/set_turbo_{}.sh", std::process::id());
         let script_content = format!("#!/bin/bash\nset -e\necho {} > {}\nexit 0\n", value, intel_pstate);
-        
+
         if fs::write(&temp_script, script_content).is_ok() {
             #[cfg(unix)]
             {
@@ -333,7 +333,7 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
                 let perms = std::fs::Permissions::from_mode(0o755);
                 let _ = fs::set_permissions(&temp_script, perms);
             }
-            
+
             if let Ok(output) = tokio::process::Command::new("pkexec")
                 .arg("bash")
                 .arg(&temp_script)
@@ -341,7 +341,7 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
                 .await
             {
                 let _ = fs::remove_file(&temp_script);
-                
+
                 if output.status.success() {
                     return ApiResponse {
                         success: true,
@@ -352,12 +352,12 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
             }
         }
     }
-    
+
     // Try cpufreq boost
     if std::path::Path::new(cpufreq_boost).exists() {
         let temp_script = format!("/tmp/set_boost_{}.sh", std::process::id());
         let script_content = format!("#!/bin/bash\nset -e\necho {} > {}\nexit 0\n", boost_value, cpufreq_boost);
-        
+
         if fs::write(&temp_script, script_content).is_ok() {
             #[cfg(unix)]
             {
@@ -365,7 +365,7 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
                 let perms = std::fs::Permissions::from_mode(0o755);
                 let _ = fs::set_permissions(&temp_script, perms);
             }
-            
+
             if let Ok(output) = tokio::process::Command::new("pkexec")
                 .arg("bash")
                 .arg(&temp_script)
@@ -373,7 +373,7 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
                 .await
             {
                 let _ = fs::remove_file(&temp_script);
-                
+
                 if output.status.success() {
                     return ApiResponse {
                         success: true,
@@ -384,7 +384,7 @@ pub async fn set_turbo_boost(enabled: bool) -> ApiResponse<String> {
             }
         }
     }
-    
+
     ApiResponse {
         success: false,
         data: None,

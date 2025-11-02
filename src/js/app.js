@@ -14,6 +14,77 @@ import { state } from './state.js';
 // Check if we're using modular HTML (template loading)
 const isModularHTML = document.getElementById('titlebar-container') !== null;
 
+async function checkAndSetupPermissions() {
+  console.log('[Permissions] Checking permission status...');
+  try {
+    const response = await window.__TAURI__.core.invoke('check_permissions_status');
+    if (response.success && response.data) {
+      if (!response.data.has_permissions) {
+        console.log('[Permissions] Missing permissions, showing setup dialog');
+        showPermissionDialog();
+        return false;
+      } else {
+        console.log('[Permissions] ✓ All permissions available');
+        return true;
+      }
+    }
+  } catch (error) {
+    console.error('[Permissions] Error checking permissions:', error);
+  }
+  return true;
+}
+
+function showPermissionDialog() {
+  const dialog = document.getElementById('permission-dialog');
+  if (dialog) {
+    dialog.style.display = 'flex';
+  }
+}
+
+function hidePermissionDialog() {
+  const dialog = document.getElementById('permission-dialog');
+  if (dialog) {
+    dialog.style.display = 'none';
+  }
+}
+
+async function setupPermissions() {
+  console.log('[Permissions] Setting up permissions...');
+  try {
+    const response = await window.__TAURI__.core.invoke('setup_permissions');
+    if (response.success) {
+      console.log('[Permissions] ✓ Setup successful');
+      hidePermissionDialog();
+      return true;
+    } else {
+      console.error('[Permissions] ✗ Setup failed:', response.error);
+      alert('Failed to setup permissions: ' + response.error);
+      return false;
+    }
+  } catch (error) {
+    console.error('[Permissions] ✗ Setup error:', error);
+    alert('Error setting up permissions: ' + error);
+    return false;
+  }
+}
+
+function setupPermissionDialog() {
+  const setupBtn = document.getElementById('setup-permissions');
+  const skipBtn = document.getElementById('skip-permissions');
+
+  if (setupBtn) {
+    setupBtn.addEventListener('click', async () => {
+      await setupPermissions();
+    });
+  }
+
+  if (skipBtn) {
+    skipBtn.addEventListener('click', () => {
+      hidePermissionDialog();
+    });
+  }
+}
+
 async function initializeApp() {
   console.log('[ThinkUtils] Initializing...');
 
@@ -32,8 +103,12 @@ async function initializeApp() {
   setupSyncHandlers();
   setupBatteryHandlers();
   setupAboutDialog();
+  setupPermissionDialog();
   checkInitialPermissions();
   startAutoUpdate();
+
+  // Check permissions at startup
+  await checkAndSetupPermissions();
 
   // Update home view periodically
   setInterval(() => {

@@ -31,7 +31,7 @@ pub fn get_sensor_data() -> ApiResponse<SensorData> {
                 if let Some((key, value)) = line.split_once(':') {
                     let key = key.trim();
                     let value = value.trim();
-                    
+
                     match key {
                         "status" => {
                             fans.insert("status".to_string(), value.to_string());
@@ -62,7 +62,7 @@ pub fn get_sensor_data() -> ApiResponse<SensorData> {
             if output.status.success() {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let temp_re = Regex::new(r"^(.+?):\s+\+?([0-9.]+°C)").unwrap();
-                
+
                 for line in stdout.lines() {
                     if let Some(caps) = temp_re.captures(line) {
                         let label = caps.get(1).unwrap().as_str().trim();
@@ -72,7 +72,7 @@ pub fn get_sensor_data() -> ApiResponse<SensorData> {
                             temps.insert(label.to_string(), value.to_string());
                         }
                     }
-                    
+
                     if line.starts_with("fan") && line.contains("RPM") {
                         if let Some((label, rest)) = line.split_once(':') {
                             let label = label.trim();
@@ -102,7 +102,7 @@ pub fn get_sensor_data() -> ApiResponse<SensorData> {
 pub async fn set_fan_speed(speed: String) -> ApiResponse<String> {
     println!("[Fan] Setting speed to: {}", speed);
     let command_str = format!("level {}", speed);
-    
+
     match fs::write(PROC_FAN, &command_str) {
         Ok(_) => {
             println!("[Fan] ✓ Speed set successfully");
@@ -114,13 +114,13 @@ pub async fn set_fan_speed(speed: String) -> ApiResponse<String> {
         }
         Err(_) => {
             println!("[Fan] Need elevated permissions");
-            
+
             let temp_script = format!("/tmp/thinkfan_set_speed_{}.sh", std::process::id());
             let script_content = format!(
-                "#!/bin/bash\nset -e\necho '{}' > {}\nexit 0\n", 
+                "#!/bin/bash\nset -e\necho '{}' > {}\nexit 0\n",
                 command_str, PROC_FAN
             );
-            
+
             if let Err(e) = fs::write(&temp_script, script_content) {
                 return ApiResponse {
                     success: false,
@@ -128,14 +128,14 @@ pub async fn set_fan_speed(speed: String) -> ApiResponse<String> {
                     error: Some(format!("Failed to create temp script: {}", e)),
                 };
             }
-            
+
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
                 let perms = std::fs::Permissions::from_mode(0o755);
                 let _ = fs::set_permissions(&temp_script, perms);
             }
-            
+
             match tokio::process::Command::new("pkexec")
                 .arg("bash")
                 .arg(&temp_script)
@@ -144,7 +144,7 @@ pub async fn set_fan_speed(speed: String) -> ApiResponse<String> {
             {
                 Ok(output) => {
                     let _ = fs::remove_file(&temp_script);
-                    
+
                     if output.status.success() {
                         println!("[Fan] ✓ Speed set via pkexec");
                         return ApiResponse {
@@ -189,9 +189,9 @@ pub fn check_permissions() -> ApiResponse<bool> {
 #[tauri::command]
 pub async fn update_permissions() -> ApiResponse<String> {
     println!("[Permissions] Updating permissions for {}", PROC_FAN);
-    
+
     let username = std::env::var("USER").unwrap_or_else(|_| "root".to_string());
-    
+
     let result = tokio::process::Command::new("pkexec")
         .arg("chown")
         .arg(&username)

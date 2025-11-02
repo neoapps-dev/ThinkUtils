@@ -4,6 +4,8 @@ mod system_info;
 mod battery;
 mod performance;
 mod monitor;
+mod auth;
+mod permissions;
 
 use tauri::{
     menu::{Menu, MenuItem},
@@ -124,6 +126,11 @@ pub fn run() {
             toggle_maximize,
             close_window,
             start_drag,
+            // Authentication
+            auth::authenticate_once,
+            // Permissions
+            permissions::check_permissions_status,
+            permissions::setup_permissions,
             // Fan Control
             fan_control::get_sensor_data,
             fan_control::set_fan_speed,
