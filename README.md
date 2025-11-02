@@ -1,6 +1,6 @@
 # ThinkUtils
 
-A modern desktop application for ThinkPad users on Linux, built with Tauri (Rust + JavaScript).
+A powerful, native desktop application that unlocks the full potential of your ThinkPad on Linux. Built with Tauri for blazing-fast performance, ThinkUtils gives you complete control over fan speeds, battery health, CPU performance, and system monitoring—all through a sleek, modern interface inspired by ThinkPad's iconic design.
 
 ![ThinkUtils](https://img.shields.io/badge/platform-Linux-blue)
 ![License](https://img.shields.io/badge/license-LGPL%20v3-green)
@@ -32,62 +32,81 @@ A modern desktop application for ThinkPad users on Linux, built with Tauri (Rust
 ## Features
 
 ### 🏠 Home Dashboard
-- **Power Mode Control**: Switch between Conservation, Balanced, and Performance modes
-- **Graphics Mode**: Toggle discrete GPU on/off for hybrid graphics
-- **Always-on USB**: Configure USB charging when laptop is off or sleeping
-- **Instant Boot**: Enable flip-to-start functionality
+Your command center for quick system adjustments. The home dashboard provides real-time monitoring and quick access to essential controls.
+
+- **System Overview**: Real-time monitoring of CPU usage and temperature, memory usage, fan speed and mode, battery level and status
+- **Power Profile Control**: Instantly switch between Power Saver, Balanced, and Performance modes to match your workflow
+- **CPU Governor**: Quick access to change CPU frequency scaling policy (Powersave, Balanced, Performance)
+- **Turbo Boost Toggle**: Enable or disable CPU turbo frequencies with a single click
+- **Battery Threshold Display**: View current charge limit settings (e.g., 40%-80%) configured for battery longevity
 
 ### 🌀 Fan Control
-- **Real-time Monitoring**: View CPU/GPU temperatures and fan speeds
+Take control of your ThinkPad's legendary cooling system. Whether you need whisper-quiet operation in a library or maximum cooling for intensive workloads, ThinkUtils gives you precise control.
+
+- **Real-time Monitoring**: Watch CPU/GPU temperatures and fan RPM update live—know exactly what's happening inside your machine
 - **Multiple Control Modes**:
-  - **Auto Mode**: System-managed cooling (default)
-  - **Manual Mode**: Set custom fan speed levels (0-7)
-  - **Maximum Mode**: Full speed cooling for intensive tasks
-- **Temperature Sensors**: Monitor all system temperature sensors
-- **Permission Management**: Secure elevated access handling
+  - **Auto Mode**: Let the system intelligently manage cooling based on temperature (recommended for most users)
+  - **Manual Mode**: Set precise fan speed levels from 0 (silent) to 7 (maximum)—perfect for finding the sweet spot between noise and cooling
+  - **Maximum Mode**: Run fans at full blast for intensive tasks like video rendering or gaming
+- **Temperature Sensors**: Monitor every thermal sensor in your system—CPU cores, GPU, battery, and more
+- **Permission Management**: Secure, one-time elevated access using pkexec—no need to run the entire app as root
 
 ### 🔋 Battery Management
-- **Multi-Battery Support**: Monitor all installed batteries
-- **Charge Thresholds**: Set start/stop charging limits to extend battery lifespan
-- **Battery Health**: View capacity, health status, and charge cycles
-- **Real-time Stats**: Current charge level, voltage, and power consumption
+Extend your battery's lifespan by years with intelligent charge management. ThinkUtils helps you implement the 40-80 rule that professionals use to maximize battery longevity.
+
+- **Multi-Battery Support**: Monitor all installed batteries—perfect for ThinkPads with dual battery setups
+- **Charge Thresholds**: Set custom start/stop charging limits (e.g., start at 40%, stop at 80%) to dramatically reduce battery wear and extend its useful life
+- **Battery Health**: Track capacity degradation, health percentage, and total charge cycles—know when it's time for a replacement
+- **Real-time Stats**: Monitor current charge level, voltage, power draw, and estimated time remaining
 
 ### ⚡ Performance Tuning
-- **CPU Governor Control**: Switch between performance, powersave, schedutil, and other governors
-- **Power Profiles**: System-wide power management (performance, balanced, power-saver)
-- **Turbo Boost**: Enable/disable CPU turbo frequencies
-- **Frequency Monitoring**: Real-time CPU frequency and range display
+Squeeze every drop of performance from your CPU or maximize battery life—your choice. Fine-tune how your ThinkPad manages processor power and frequency scaling.
+
+- **CPU Governor Control**: Choose your scaling policy—performance for maximum speed, powersave for battery life, schedutil for intelligent scheduling, or ondemand for dynamic adjustment
+- **Power Profiles**: System-wide power management profiles that coordinate CPU, GPU, and other components for optimal performance or efficiency
+- **Turbo Boost**: Toggle Intel Turbo Boost on/off—disable it to reduce heat and power consumption, or enable it for burst performance
+- **Frequency Monitoring**: Watch your CPU frequency scale in real-time and see min/max ranges for each core
 
 ### 📊 System Monitor
-- **CPU Usage**: Per-core utilization and load averages
-- **Memory Stats**: RAM and swap usage with detailed metrics
-- **Disk Usage**: Monitor all mounted filesystems
-- **Network Activity**: Real-time upload/download speeds per interface
-- **Process Monitor**: View top processes by CPU and memory usage
+A comprehensive system dashboard that shows you everything happening on your ThinkPad. No need for multiple terminal windows—get all your metrics in one beautiful interface.
+
+- **CPU Usage**: Per-core utilization with frequency display and 1/5/15 minute load averages—spot bottlenecks instantly
+- **Memory Stats**: RAM and swap usage with detailed breakdowns of used, available, and total memory
+- **Disk Usage**: Monitor space usage across all mounted filesystems with device names and mount points
+- **Network Activity**: Total bytes and packets transmitted/received for each network interface
+- **Process Monitor**: View top processes by CPU and memory consumption with PID, name, and status
 
 ### 💻 System Information
-- **Hardware Details**: Model, CPU, memory, and OS information
-- **Kernel Version**: Current Linux kernel
-- **Hostname**: System identification
+Know your machine inside and out. Quick access to all your ThinkPad's hardware specifications and system details.
+
+- **Hardware Details**: Complete specs including ThinkPad model, CPU type, total memory, and operating system
+- **Kernel Version**: Current Linux kernel version—useful for troubleshooting compatibility
+- **Hostname**: System identification for network management
 
 ### 🔄 Google Drive Sync
-- **Settings Backup**: Sync your ThinkUtils configuration to Google Drive
-- **Cross-Device**: Access settings from any device
-- **OAuth Integration**: Secure Google account authentication
+Never lose your carefully tuned settings. Sync your ThinkUtils configuration to the cloud and restore it on any ThinkPad.
+
+- **Settings Backup**: Sync your fan mode, battery thresholds, and application preferences to Google Drive
+- **Cross-Device**: Switch between multiple ThinkPads? Keep your settings consistent across all your machines
+- **OAuth Integration**: Secure authentication using Google's OAuth—your credentials never touch ThinkUtils servers
+- **Note**: Requires Google OAuth credentials to be configured (see GOOGLE_OAUTH_SETUP.md)
 
 ### 🎨 Modern UI
-- **Dark Theme**: Sleek dark interface with ThinkPad red accents
-- **Custom Titlebar**: Frameless window with native controls
-- **Responsive Design**: Clean, organized layout
-- **Real-time Updates**: Live data refresh for all metrics
+A beautiful interface that feels right at home on your ThinkPad. Inspired by ThinkPad's iconic design language with modern touches.
+
+- **Dark Theme**: Easy on the eyes with a sleek dark interface accented by ThinkPad's signature red—perfect for late-night work sessions
+- **Custom Titlebar**: Frameless window design with native controls that integrates seamlessly with your desktop environment
+- **Responsive Design**: Clean, organized layout that makes complex system controls feel intuitive and accessible
+- **Real-time Updates**: All metrics refresh automatically—no manual refreshing needed
 
 ## How it Works
 
-ThinkUtils uses:
-- **Rust backend** for system access and fan control
-- **sensors command** to read temperature data
-- **/proc/acpi/ibm/fan** to control fan speed
-- **pkexec** for elevated permissions when needed
+ThinkUtils combines the performance of Rust with the flexibility of web technologies to deliver a native desktop experience:
+
+- **Rust backend** provides blazing-fast system access and direct hardware control with minimal overhead
+- **sensors command** (lm-sensors) reads temperature data from all available thermal sensors
+- **/proc/acpi/ibm/fan** interface gives direct access to ThinkPad's fan controller via the thinkpad_acpi kernel module
+- **pkexec** handles elevated permissions securely—only specific operations require root access, not the entire application
 
 ## Prerequisites
 
@@ -196,11 +215,11 @@ Use the left sidebar to navigate between features:
 
 The home screen provides quick access to essential controls:
 
-1. **CPU/GPU Cards**: Monitor utilization and temperature
-2. **Power Mode**: Click buttons to switch between Conservation, Balanced, or Performance
-3. **Graphics Mode**: Toggle discrete GPU on/off
-4. **Always-on USB**: Enable USB charging when laptop is off or sleeping
-5. **Instant Boot**: Enable flip-to-start feature
+1. **System Overview**: Monitor CPU usage/temperature, memory usage, fan speed, and battery level in real-time
+2. **Power Profile**: Click buttons to switch between Power Saver, Balanced, or Performance modes
+3. **CPU Governor**: Select CPU frequency scaling policy (Powersave, Balanced, Performance)
+4. **Turbo Boost**: Toggle CPU turbo frequencies on/off with a switch
+5. **Battery Threshold**: View current charge limit settings (configured in Battery view)
 
 ### Fan Control
 
@@ -237,15 +256,15 @@ Monitor current frequency and min/max ranges in real-time.
 
 ### System Monitor
 
-Track system resources:
+Track system resources in real-time:
 
-- **CPU**: Per-core usage and load averages
-- **Memory**: RAM and swap utilization
-- **Disk**: Usage per mounted filesystem
-- **Network**: Real-time bandwidth per interface
-- **Processes**: Top processes by CPU/memory
+- **CPU**: Per-core usage with frequency and load averages (1/5/15 min)
+- **Memory**: RAM and swap utilization with used/available/total breakdown
+- **Disk**: Usage per mounted filesystem with device names
+- **Network**: Total bytes and packets transmitted/received per interface
+- **Processes**: Top processes by CPU/memory with PID, name, and status
 
-All metrics update automatically.
+All metrics update automatically every 2 seconds.
 
 ### Google Drive Sync
 
