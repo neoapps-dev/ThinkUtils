@@ -175,20 +175,205 @@ sudo dnf install webkit2gtk4.1-devel \
     librsvg2-devel
 ```
 
-### Run in Development Mode
+### Getting Started
 
+1. **Clone and install dependencies:**
 ```bash
+git clone https://github.com/vietanhdev/ThinkUtils.git
+cd thinkutils
 npm install
+```
+
+2. **Run in development mode:**
+```bash
 npm run tauri dev
 ```
 
-### Build for Production
-
+3. **Build for production:**
 ```bash
 npm run tauri build
 ```
 
 The built packages will be in `src-tauri/target/release/bundle/`
+
+### Code Quality & Linting
+
+ThinkUtils uses comprehensive linting and formatting tools to maintain code quality:
+
+- **ESLint** - JavaScript linting
+- **HTMLHint** - HTML validation
+- **Stylelint** - CSS linting
+- **Prettier** - Code formatting
+- **Husky** - Git hooks for pre-commit checks
+- **lint-staged** - Run linters on staged files only
+
+#### Available Commands
+
+```bash
+# Run all linters
+npm run lint
+
+# Auto-fix issues
+npm run lint:fix
+
+# Format all files
+npm run format
+
+# Full validation (lint + format check)
+npm run validate
+```
+
+#### Pre-commit Hooks
+
+Pre-commit hooks are automatically set up when you run `npm install`. They will:
+
+1. ✅ **Auto-format** staged files (JavaScript, HTML, CSS, JSON)
+2. ✅ **Lint** staged files and fix auto-fixable issues
+3. ✅ **Validate** all code before allowing commit
+4. ❌ **Block commit** if linting fails
+
+**What happens on commit:**
+```bash
+git commit -m "Your message"
+
+🔍 Running pre-commit checks...
+📝 Formatting and linting staged files...
+  ✓ JavaScript files formatted and linted
+  ✓ CSS files formatted and linted
+  ✓ HTML files validated
+✅ All checks passed!
+```
+
+**If issues are found:**
+```bash
+❌ Linting failed. Please fix the issues and try again.
+```
+
+The commit will be blocked until you fix the issues. Most issues can be auto-fixed:
+```bash
+npm run lint:fix
+git add .
+git commit -m "Your message"
+```
+
+#### IDE Integration
+
+**VS Code** (Recommended):
+1. Install recommended extensions (popup will appear)
+2. Reload VS Code
+3. Files will auto-format on save!
+
+Recommended extensions:
+- ESLint
+- Prettier
+- HTMLHint
+- Stylelint
+
+**Other IDEs:**
+See `LINTING_SETUP.md` for configuration instructions.
+
+#### Bypassing Pre-commit Hooks
+
+In rare cases where you need to bypass hooks (not recommended):
+```bash
+git commit --no-verify -m "Your message"
+```
+
+### Project Structure
+
+```
+thinkutils/
+├── src/                    # Frontend
+│   ├── index.html         # Main UI
+│   ├── styles.css         # Styling
+│   └── js/                # Modular JavaScript
+│       ├── app.js         # Main entry point
+│       ├── dom.js         # DOM references
+│       ├── state.js       # State management
+│       ├── utils.js       # Utilities
+│       ├── navigation.js  # View switching
+│       ├── titlebar.js    # Window controls
+│       ├── about.js       # About dialog
+│       └── views/         # Feature modules
+│           ├── home.js
+│           ├── fan.js
+│           ├── battery.js
+│           ├── performance.js
+│           ├── monitor.js
+│           ├── sync.js
+│           └── system.js
+├── src-tauri/             # Backend (Rust)
+│   ├── src/
+│   │   └── lib.rs         # Tauri commands
+│   └── tauri.conf.json    # Configuration
+├── .husky/                # Git hooks
+│   └── pre-commit         # Pre-commit validation
+├── .eslintrc.json         # ESLint config
+├── .prettierrc.json       # Prettier config
+├── .stylelintrc.json      # Stylelint config
+├── .htmlhintrc            # HTMLHint config
+└── .lintstagedrc.json     # lint-staged config
+```
+
+### Development Workflow
+
+1. **Create a feature branch:**
+```bash
+git checkout -b feature/your-feature
+```
+
+2. **Make your changes:**
+   - Edit files in `src/` for frontend
+   - Edit files in `src-tauri/src/` for backend
+
+3. **Test your changes:**
+```bash
+npm run tauri dev
+```
+
+4. **Validate code quality:**
+```bash
+npm run validate
+```
+
+5. **Commit your changes:**
+```bash
+git add .
+git commit -m "feat: add your feature"
+```
+   - Pre-commit hooks will automatically format and lint
+   - Commit will be blocked if validation fails
+
+6. **Push and create PR:**
+```bash
+git push origin feature/your-feature
+```
+
+### Coding Standards
+
+- **JavaScript**: ES6+ modules, single quotes, semicolons
+- **HTML**: HTML5, lowercase tags, double quotes for attributes
+- **CSS**: Standard CSS, consistent spacing
+- **Formatting**: 2-space indentation, LF line endings
+- **Commits**: Follow [Conventional Commits](https://www.conventionalcommits.org/)
+
+### Testing
+
+```bash
+# Run linters
+npm run lint
+
+# Run auto-fix
+npm run lint:fix
+
+# Full validation
+npm run validate
+```
+
+### Documentation
+
+- `src/js/README.md` - JavaScript module documentation
+- `docs/` - Feature documentation
 
 ## Usage
 
